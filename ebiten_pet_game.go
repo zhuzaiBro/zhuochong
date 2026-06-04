@@ -238,6 +238,7 @@ func (g *livePetGame) Draw(screen *ebiten.Image) {
 
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(sx, sy)
+	op.Filter = ebiten.FilterLinear
 	screen.DrawImage(img, op)
 	g.drawBubbleIfAny(screen)
 }

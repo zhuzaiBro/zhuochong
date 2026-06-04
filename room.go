@@ -327,7 +327,7 @@ func parseEnterMsg(msg []byte, webRoomId string, callback string) {
 func parseControlMsg(msg []byte, webRoomId string, callback string) {
 	var enterMsg dyproto.MemberMessage
 	_ = proto.Unmarshal(msg, &enterMsg)
-	log.Printf("[房间] %s : [直播间状态变更] %s 直播间\n", webRoomId, enterMsg.Action)
+	log.Printf("[房间] %s : [直播间状态变更] %d 直播间\n", webRoomId, enterMsg.Action)
 	if room, ok := rooms[webRoomId]; ok {
 		room.Close()
 		delete(rooms, webRoomId)

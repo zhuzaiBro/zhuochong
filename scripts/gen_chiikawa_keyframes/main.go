@@ -107,6 +107,7 @@ var presets = map[string][]kf{
 
 func main() {
 	root := flag.String("root", "chiikawa-sprites", "素材根目录（相对 cwd）")
+	size := flag.Int("size", 0, "输出正方形画布尺寸；0 表示沿用 frame01 尺寸")
 	flag.Parse()
 
 	entries, err := os.ReadDir(*root)
@@ -141,7 +142,7 @@ func main() {
 		for i, k := range preset {
 			frameIdx := i + 2
 			outPath := filepath.Join(dir, fmt.Sprintf("frame%02d.png", frameIdx))
-			dst := renderKeyframe(src, k.sx, k.sy, k.dx, k.dy)
+			dst := renderKeyframe(src, k.sx, k.sy, k.dx, k.dy, *size)
 			if err := writePNG(outPath, dst); err != nil {
 				log.Fatal(err)
 			}
@@ -166,15 +167,24 @@ func writePNG(path string, img image.Image) error {
 		return err
 	}
 	defer f.Close()
-	return png.Encode(f, img)
+	enc := png.Encoder{CompressionLevel: png.BestCompression}
+	return enc.Encode(f, img)
 }
 
 // renderKeyframe 在固定画布上居中绘制缩放后的角色（保留透明底）。
-func renderKeyframe(src image.Image, sx, sy float64, dx, dy int) *image.NRGBA {
+func renderKeyframe(src image.Image, sx, sy float64, dx, dy int, canvasSize int) *image.NRGBA {
 	sr := src.Bounds()
 	sw, sh := sr.Dx(), sr.Dy()
-	dw := int(float64(sw)*sx + 0.5)
-	dh := int(float64(sh)*sy + 0.5)
+	outW, outH := sw, sh
+	if canvasSize > 0 {
+		outW, outH = canvasSize, canvasSize
+	}
+	baseScale := float64(outW) / float64(sw)
+	if by := float64(outH) / float64(sh); by < baseScale {
+		baseScale = by
+	}
+	dw := int(float64(sw)*baseScale*sx + 0.5)
+	dh := int(float64(sh)*baseScale*sy + 0.5)
 	if dw < 1 {
 		dw = 1
 	}
@@ -182,15 +192,15 @@ func renderKeyframe(src image.Image, sx, sy float64, dx, dy int) *image.NRGBA {
 		dh = 1
 	}
 	scaled := image.NewNRGBA(image.Rect(0, 0, dw, dh))
-	draw.ApproxBiLinear.Scale(scaled, scaled.Bounds(), src, sr, draw.Over, nil)
+	draw.CatmullRom.Scale(scaled, scaled.Bounds(), src, sr, draw.Over, nil)
 
-	out := image.NewNRGBA(sr)
+	out := image.NewNRGBA(image.Rect(0, 0, outW, outH))
 	// 透明画布
 	for i := range out.Pix {
 		out.Pix[i] = 0
 	}
-	px := (sw - dw) / 2 + dx
-	py := (sh - dh) / 2 + dy
+	px := (outW-dw)/2 + int(float64(dx)*baseScale+0.5)
+	py := (outH-dh)/2 + int(float64(dy)*baseScale+0.5)
 	draw.Draw(out, image.Rect(px, py, px+dw, py+dh), scaled, image.Point{}, draw.Over)
 	return out
 }

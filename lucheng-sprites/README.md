@@ -45,7 +45,7 @@ lucheng-sprites/
 | 属性 | 规格 |
 |------|------|
 | 格式 | PNG（RGBA，透明背景） |
-| 分辨率 | 512 × 512 像素 |
+| 分辨率 | 1248 × 1248 像素 |
 | 色彩模式 | RGBA |
 | 背景 | 完全透明 |
 
@@ -67,6 +67,33 @@ python3 process_sprites.py
 ```
 
 生成的 GIF 文件将保存至 `lucheng-gifs/` 目录。
+
+### 统一关键帧质量
+
+替换或新增 PNG 后，可在仓库根目录运行：
+
+```bash
+go run ./scripts/enhance_pet_keyframes -root lucheng-sprites -size 1248 -key-white
+```
+
+脚本会把所有动作帧统一为 `1248x1248` RGBA 透明 PNG，并使用 Catmull-Rom 高质量重采样。检查背景边缘透明度：
+
+```bash
+go run ./scripts/enhance_pet_keyframes -root lucheng-sprites -check-only
+```
+
+若某组动作贴到画布边缘，可给该目录加透明安全边：
+
+```bash
+go run ./scripts/enhance_pet_keyframes -root lucheng-sprites/headpat -size 1248 -padding 64 -key-white
+```
+
+若低清关键帧出现灰色脏遮罩，可从干净高分辨率帧重新衍生前 6 张：
+
+```bash
+go run ./scripts/derive_lucheng_keyframes
+go run ./scripts/enhance_pet_keyframes -root lucheng-sprites -size 1248 -key-white -clean-alpha -alpha-cutoff 24 -alpha-radius 0
+```
 
 ### 扩展新状态
 

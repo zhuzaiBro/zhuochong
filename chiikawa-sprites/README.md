@@ -40,7 +40,13 @@ chiikawa-sprites/
 go run ./scripts/gen_chiikawa_keyframes
 ```
 
-（脚本仅做轻微缩放与位移合成「呼吸 / 说话挤压 / 抖动」等过渡感，并非重绘；改画风请替换 `frame01` 后重新跑脚本覆盖 `frame02`…`frame07`。）
+可指定输出画布尺寸：
+
+```bash
+go run ./scripts/gen_chiikawa_keyframes -size 1248
+```
+
+（脚本仅做轻微缩放与位移合成「呼吸 / 说话挤压 / 抖动」等过渡感，并非重绘；现在使用 Catmull-Rom 高质量重采样。改画风请替换 `frame01` 后重新跑脚本覆盖 `frame02`…`frame07`。）
 
 ## 集成方式
 
