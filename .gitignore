@@ -1,3 +1,6 @@
+# Package output
+dist/
+
 # Binaries for programs and plugins
 *.exe
 *.exe~

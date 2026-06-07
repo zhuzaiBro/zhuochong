@@ -5,6 +5,7 @@ package main
 import (
 	"log"
 	"math"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -12,9 +13,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// moodSleepIdle 等由 ebiten_pet_main 在解析 flag 后写入。
+// moodOfficeIdle 等由 ebiten_pet_main 在解析 flag 后写入。
 var (
-	moodSleepIdle  time.Duration
+	moodOfficeIdle time.Duration
 	moodTalkingDur time.Duration
 	moodHappyDur   time.Duration
 )
@@ -41,6 +42,8 @@ type livePetGame struct {
 
 	initPos    bool
 	winW, winH int
+
+	mousePassthrough bool
 }
 
 func newLivePetGame(size float64, initX, initY int) *livePetGame {
@@ -56,8 +59,9 @@ func newLivePetGame(size float64, initX, initY int) *livePetGame {
 	hh := int(math.Round(float64(bh) * size))
 
 	g := &livePetGame{
-		sm:           newStateMachine(ww, hh),
-		lastInteract: time.Now(),
+		sm:               newStateMachine(ww, hh),
+		lastInteract:     time.Now(),
+		mousePassthrough: true,
 	}
 	g.winW = g.sm.winW
 	g.winH = g.sm.winH
@@ -72,15 +76,31 @@ func (g *livePetGame) placeInitialWindow(initX, initY int) {
 		ebiten.SetWindowPosition(initX, initY)
 		return
 	}
-	x := sw - g.winW - 40
-	if x < 0 {
-		x = 40
-	}
-	y := sh - g.winH - 120
-	if y < 0 {
-		y = 40
-	}
+	x, y := defaultWindowPosition(sw, sh, g.winW+bubbleColumnW, g.winH)
 	ebiten.SetWindowPosition(x, y)
+}
+
+// defaultWindowPosition 按系统把窗口放在底栏（Dock / 任务栏）右上，即屏幕右下角、栏的上方。
+func defaultWindowPosition(screenW, screenH, winW, winH int) (int, int) {
+	const marginRight = 16
+	x := screenW - winW - marginRight
+	if x < 0 {
+		x = 0
+	}
+	var bottomInset int
+	switch runtime.GOOS {
+	case "darwin":
+		bottomInset = 88 // Dock 高度 + 间距
+	case "windows":
+		bottomInset = 56 // 任务栏高度 + 间距
+	default:
+		bottomInset = 72
+	}
+	y := screenH - winH - bottomInset
+	if y < 0 {
+		y = 0
+	}
+	return x, y
 }
 
 func defaultEbitenRunOptions() *ebiten.RunGameOptions {
@@ -195,8 +215,8 @@ func (g *livePetGame) pickDrawImage() *ebiten.Image {
 	if !tu.IsZero() && now.Before(tu) && embeddedSprites.Talking != nil && len(embeddedSprites.Talking.Frames) > 0 {
 		return g.overlayFrame(embeddedSprites.Talking)
 	}
-	if moodSleepIdle > 0 && now.Sub(li) >= moodSleepIdle && embeddedSprites.Sleeping != nil && len(embeddedSprites.Sleeping.Frames) > 0 {
-		return g.overlayFrame(embeddedSprites.Sleeping)
+	if moodOfficeIdle > 0 && now.Sub(li) >= moodOfficeIdle && embeddedSprites.Office != nil && len(embeddedSprites.Office.Frames) > 0 {
+		return g.overlayFrame(embeddedSprites.Office)
 	}
 	if g.readExcited() && g.sm.showHappyOverlay() && len(embeddedSprites.Happy.Frames) > 0 {
 		return embeddedSprites.Happy.Frames[0]
@@ -219,6 +239,7 @@ func (g *livePetGame) Update() error {
 	if !g.initPos {
 		g.initPos = true
 	}
+	g.updateMousePassthrough()
 	g.moodTick++
 	return g.sm.Update()
 }

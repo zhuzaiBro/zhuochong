@@ -17,21 +17,26 @@ func main() {
 	addr := flag.String("addr", ":8709", "HTTP 监听地址（与默认弹幕服务一致）；-no-server 时忽略")
 	wsURL := flag.String("ws", "", "WebSocket URL，默认由 -addr 推导为 ws://127.0.0.1:8709/ws")
 	noServer := flag.Bool("no-server", false, "不启动 HTTP+WS 服务，仅连接已有进程的 -ws")
-	x := flag.Int("x", -1, "窗口初始 X（默认居中偏右）")
-	y := flag.Int("y", -1, "窗口初始 Y（默认距底 120px）")
+	x := flag.Int("x", -1, "窗口初始 X（默认：Dock/任务栏右上）")
+	y := flag.Int("y", -1, "窗口初始 Y（默认：Dock/任务栏右上）")
 	size := flag.Float64("size", 1.15, "立绘缩放（相对 chiikawa PNG 像素尺寸）")
 	hungrySec := flag.Int64("hungry", 3600, "多少秒后进入「疲倦/饥饿」状态；0 关闭")
 	walkPct := flag.Int("walk", 0, "自动溜达概率 %；0 为关闭（默认：精灵不自己横向移动）")
 	stopPct := flag.Int("stop", 40, "溜达时每周期停下的概率 %")
-	sleepIdle := flag.Float64("sleep-idle", 10, "无互动多少秒后显示睡觉立绘（秒，弹幕/礼物/点赞会刷新计时）；0 关闭")
+	officeIdle := flag.Float64("office-idle", 120, "无互动多少秒后进入办公状态（秒，弹幕/礼物/点赞会刷新计时）；0 关闭")
+	sleepIdle := flag.Float64("sleep-idle", 0, "已废弃，请用 -office-idle；若 >0 则覆盖 -office-idle")
 	talkingSec := flag.Float64("talking-sec", 3.5, "收到弹幕后 talking 动画持续时长（秒）")
 	giftSec := flag.Float64("gift-sec", 2.8, "收到礼物后 happy 动画持续时长（秒）")
 	flag.Parse()
 
-	if *sleepIdle <= 0 {
-		moodSleepIdle = 0
+	idleSec := *officeIdle
+	if *sleepIdle > 0 {
+		idleSec = *sleepIdle
+	}
+	if idleSec <= 0 {
+		moodOfficeIdle = 0
 	} else {
-		moodSleepIdle = time.Duration(*sleepIdle * float64(time.Second))
+		moodOfficeIdle = time.Duration(idleSec * float64(time.Second))
 	}
 	moodTalkingDur = time.Duration(*talkingSec * float64(time.Second))
 	moodHappyDur = time.Duration(*giftSec * float64(time.Second))

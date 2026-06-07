@@ -3,6 +3,7 @@
 package main
 
 import (
+	"flag"
 	"image"
 	"image/color"
 	"image/draw"
@@ -26,6 +27,18 @@ type draft struct {
 }
 
 func main() {
+	contactOnly := flag.Bool("contact-sheet-only", false, "只刷新 contact-sheet.png，不重新生成草案帧")
+	flag.Parse()
+
+	if *contactOnly {
+		sheet, err := contactSheet(filepath.Join(out, "contact-sheet.png"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("写 %s", sheet)
+		return
+	}
+
 	if err := os.RemoveAll(out); err != nil {
 		log.Fatal(err)
 	}
@@ -34,7 +47,7 @@ func main() {
 	}
 
 	drafts := []draft{
-		{"1-1_office_executive.png", "idle/frame9.png", decorateExecutiveOffice},
+		{"1-1_office_executive.png", "office/frame1.png", nil},
 		{"2-1_noon_sleep.png", "coffee/frame7.png", decorateSleep},
 		{"2-2_neutral.png", "idle/frame1.png", nil},
 		{"2-3_talk_weather.png", "talking/frame7.png", decorateWeatherReminder},
@@ -97,51 +110,67 @@ func save(path string, img image.Image) error {
 }
 
 func decorateExecutiveOffice(img *image.NRGBA) {
-	// Executive desk: deep walnut body, black leather blotter, and restrained brass trim.
-	fillRect(img, 250, 742, 1002, 808, rgba(35, 20, 16, 248))
-	fillRect(img, 270, 804, 982, 996, rgba(70, 42, 33, 248))
-	fillRect(img, 288, 826, 964, 974, rgba(86, 52, 41, 245))
-	fillRect(img, 318, 858, 934, 944, rgba(52, 32, 28, 246))
-	strokeRect(img, 258, 736, 994, 812, rgba(190, 142, 67, 245), 5)
-	strokeRect(img, 302, 842, 950, 960, rgba(178, 128, 62, 235), 4)
-	strokeRect(img, 340, 876, 912, 926, rgba(28, 18, 16, 230), 3)
-	fillRect(img, 276, 1010, 326, 1190, rgba(46, 28, 23, 245))
-	fillRect(img, 900, 1010, 950, 1190, rgba(46, 28, 23, 245))
-	strokeRect(img, 276, 1010, 326, 1190, rgba(27, 16, 14, 230), 3)
-	strokeRect(img, 900, 1010, 950, 1190, rgba(27, 16, 14, 230), 3)
+	// High-end executive desk in one consistent 3/4 perspective.
+	top := []image.Point{{232, 724}, {1016, 724}, {966, 824}, {282, 824}}
+	front := []image.Point{{282, 824}, {966, 824}, {928, 1042}, {318, 1042}}
+	leftSide := []image.Point{{232, 724}, {282, 824}, {318, 1042}, {266, 1010}}
+	rightSide := []image.Point{{1016, 724}, {966, 824}, {928, 1042}, {984, 1008}}
+	leather := []image.Point{{404, 746}, {846, 746}, {820, 802}, {430, 802}}
+	frontInset := []image.Point{{330, 858}, {920, 858}, {894, 976}, {354, 976}}
+	frontCore := []image.Point{{370, 890}, {884, 890}, {866, 946}, {388, 946}}
 
-	fillRect(img, 410, 712, 846, 782, rgba(24, 27, 34, 238))
-	strokeRect(img, 410, 712, 846, 782, rgba(102, 92, 75, 230), 3)
-	line(img, 430, 768, 826, 768, rgba(214, 170, 92, 180), 2)
+	fillPoly(img, top, rgba(44, 25, 18, 255))
+	fillPoly(img, leftSide, rgba(40, 22, 17, 255))
+	fillPoly(img, rightSide, rgba(34, 19, 15, 255))
+	fillPoly(img, front, rgba(82, 48, 34, 255))
+	fillPoly(img, frontInset, rgba(128, 80, 48, 245))
+	fillPoly(img, frontCore, rgba(48, 27, 22, 250))
+	strokePoly(img, top, rgba(208, 154, 70, 245), 5)
+	strokePoly(img, front, rgba(112, 70, 42, 235), 5)
+	strokePoly(img, frontInset, rgba(202, 146, 66, 240), 4)
+	strokePoly(img, frontCore, rgba(30, 18, 16, 230), 3)
+	fillPoly(img, leather, rgba(20, 24, 31, 245))
+	strokePoly(img, leather, rgba(110, 96, 72, 230), 3)
+	line(img, 430, 792, 820, 792, rgba(214, 170, 92, 170), 2)
 
-	// Open laptop with a visible screen and keyboard deck.
-	fillRect(img, 500, 616, 748, 744, rgba(21, 24, 30, 255))
-	strokeRect(img, 500, 616, 748, 744, rgba(10, 12, 16, 255), 4)
-	fillRect(img, 520, 638, 728, 718, rgba(58, 74, 94, 245))
-	fillRect(img, 534, 654, 714, 704, rgba(76, 96, 120, 170))
-	fillRect(img, 452, 744, 794, 778, rgba(206, 214, 222, 245))
-	fillRect(img, 478, 754, 768, 768, rgba(124, 137, 151, 240))
-	fillRect(img, 584, 760, 664, 772, rgba(84, 92, 104, 240))
-	strokeRect(img, 452, 744, 794, 778, rgba(32, 36, 42, 255), 3)
+	// Block legs and side plinths aligned to the desk body.
+	fillPoly(img, []image.Point{{278, 1010}, {330, 1038}, {330, 1184}, {278, 1184}}, rgba(42, 24, 18, 255))
+	fillPoly(img, []image.Point{{902, 1038}, {956, 1010}, {956, 1184}, {902, 1184}}, rgba(42, 24, 18, 255))
+	strokePoly(img, []image.Point{{278, 1010}, {330, 1038}, {330, 1184}, {278, 1184}}, rgba(26, 16, 13, 230), 3)
+	strokePoly(img, []image.Point{{902, 1038}, {956, 1010}, {956, 1184}, {902, 1184}}, rgba(26, 16, 13, 230), 3)
 
-	// Upright porcelain coffee cup on a saucer.
-	fillEllipse(img, 858, 736, 82, 24, rgba(224, 226, 232, 245))
-	strokeEllipse(img, 858, 736, 82, 24, rgba(74, 74, 82, 210), 2)
-	fillRect(img, 818, 654, 898, 734, rgba(246, 247, 250, 255))
-	fillEllipse(img, 858, 654, 42, 18, rgba(250, 250, 252, 255))
-	fillEllipse(img, 858, 654, 31, 11, rgba(74, 42, 27, 255))
-	strokeEllipse(img, 858, 654, 42, 18, rgba(36, 36, 42, 230), 2)
-	strokeRect(img, 818, 654, 898, 734, rgba(224, 226, 232, 220), 2)
-	strokeEllipse(img, 902, 690, 24, 30, rgba(246, 247, 250, 245), 6)
+	// Open laptop with perspective base.
+	fillRect(img, 506, 620, 746, 744, rgba(20, 23, 29, 255))
+	strokeRect(img, 506, 620, 746, 744, rgba(8, 10, 14, 255), 4)
+	fillRect(img, 526, 640, 726, 714, rgba(58, 74, 94, 245))
+	fillRect(img, 540, 656, 712, 700, rgba(80, 100, 122, 180))
+	laptopBase := []image.Point{{456, 744}, {794, 744}, {830, 782}, {424, 782}}
+	fillPoly(img, laptopBase, rgba(204, 212, 220, 248))
+	strokePoly(img, laptopBase, rgba(30, 34, 40, 255), 3)
+	fillPoly(img, []image.Point{{488, 756}, {770, 756}, {786, 770}, {472, 770}}, rgba(124, 137, 151, 240))
+	fillPoly(img, []image.Point{{588, 760}, {668, 760}, {672, 772}, {584, 772}}, rgba(82, 90, 102, 240))
 
-	// Desk accessories: document tray, name plate, and a slim brass lamp.
-	fillRect(img, 330, 690, 458, 722, rgba(240, 233, 214, 245))
-	strokeRect(img, 330, 690, 458, 722, rgba(166, 126, 64, 235), 2)
-	fillRect(img, 350, 704, 436, 709, rgba(88, 70, 54, 185))
-	fillRect(img, 332, 728, 476, 760, rgba(70, 45, 34, 235))
-	line(img, 760, 664, 860, 598, rgba(196, 150, 78, 230), 6)
-	fillEllipse(img, 884, 588, 58, 22, rgba(206, 164, 88, 235))
-	fillEllipse(img, 742, 760, 34, 10, rgba(190, 142, 67, 225))
+	// Smaller porcelain coffee cup and saucer placed on the same top plane.
+	fillEllipse(img, 874, 752, 56, 16, rgba(224, 226, 232, 245))
+	strokeEllipse(img, 874, 752, 56, 16, rgba(74, 74, 82, 210), 2)
+	fillRect(img, 848, 690, 900, 744, rgba(246, 247, 250, 255))
+	fillEllipse(img, 874, 690, 27, 11, rgba(250, 250, 252, 255))
+	fillEllipse(img, 874, 690, 20, 7, rgba(74, 42, 27, 255))
+	strokeEllipse(img, 874, 690, 27, 11, rgba(36, 36, 42, 230), 2)
+	strokeRect(img, 848, 690, 900, 744, rgba(224, 226, 232, 220), 2)
+	strokeEllipse(img, 904, 716, 16, 20, rgba(246, 247, 250, 245), 5)
+
+	// Quiet premium desk accessories.
+	fillPoly(img, []image.Point{{330, 692}, {454, 692}, {474, 724}, {312, 724}}, rgba(240, 233, 214, 245))
+	strokePoly(img, []image.Point{{330, 692}, {454, 692}, {474, 724}, {312, 724}}, rgba(166, 126, 64, 235), 2)
+	line(img, 350, 706, 438, 706, rgba(88, 70, 54, 185), 4)
+	fillPoly(img, []image.Point{{326, 730}, {472, 730}, {492, 762}, {306, 762}}, rgba(70, 45, 34, 235))
+	fillEllipse(img, 742, 766, 34, 10, rgba(190, 142, 67, 225))
+	fillRect(img, 926, 700, 952, 748, rgba(42, 42, 48, 235))
+	strokeRect(img, 926, 700, 952, 748, rgba(184, 138, 66, 230), 2)
+	line(img, 932, 696, 916, 650, rgba(206, 164, 88, 230), 3)
+	line(img, 942, 696, 946, 644, rgba(206, 164, 88, 230), 3)
+	line(img, 950, 698, 970, 658, rgba(206, 164, 88, 230), 3)
 }
 
 func decorateSleep(img *image.NRGBA) {
@@ -228,6 +257,60 @@ func strokeRect(img *image.NRGBA, x0, y0, x1, y1 int, c color.NRGBA, w int) {
 	fillRect(img, x0, y1-w, x1, y1, c)
 	fillRect(img, x0, y0, x0+w, y1, c)
 	fillRect(img, x1-w, y0, x1, y1, c)
+}
+
+func fillPoly(img *image.NRGBA, points []image.Point, c color.NRGBA) {
+	if len(points) < 3 {
+		return
+	}
+	minX, maxX := points[0].X, points[0].X
+	minY, maxY := points[0].Y, points[0].Y
+	for _, p := range points[1:] {
+		if p.X < minX {
+			minX = p.X
+		}
+		if p.X > maxX {
+			maxX = p.X
+		}
+		if p.Y < minY {
+			minY = p.Y
+		}
+		if p.Y > maxY {
+			maxY = p.Y
+		}
+	}
+	for y := minY; y <= maxY; y++ {
+		for x := minX; x <= maxX; x++ {
+			if pointInPoly(image.Pt(x, y), points) {
+				blend(img, x, y, c)
+			}
+		}
+	}
+}
+
+func strokePoly(img *image.NRGBA, points []image.Point, c color.NRGBA, width int) {
+	if len(points) < 2 {
+		return
+	}
+	for i := range points {
+		a := points[i]
+		b := points[(i+1)%len(points)]
+		line(img, a.X, a.Y, b.X, b.Y, c, width)
+	}
+}
+
+func pointInPoly(p image.Point, points []image.Point) bool {
+	inside := false
+	j := len(points) - 1
+	for i := range points {
+		pi, pj := points[i], points[j]
+		if (pi.Y > p.Y) != (pj.Y > p.Y) &&
+			p.X < (pj.X-pi.X)*(p.Y-pi.Y)/(pj.Y-pi.Y)+pi.X {
+			inside = !inside
+		}
+		j = i
+	}
+	return inside
 }
 
 func fillEllipse(img *image.NRGBA, cx, cy, rx, ry int, c color.NRGBA) {

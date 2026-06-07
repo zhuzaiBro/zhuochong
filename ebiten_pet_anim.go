@@ -26,12 +26,12 @@ type Anim struct {
 }
 
 type petSpriteSet struct {
-	Idle     *Anim
-	Wink     *Anim
-	Tired    *Anim
-	Happy    *Anim
-	Talking  *Anim
-	Sleeping *Anim
+	Idle    *Anim
+	Wink    *Anim
+	Tired   *Anim
+	Happy   *Anim
+	Talking *Anim
+	Office  *Anim
 }
 
 var embeddedSprites *petSpriteSet
@@ -88,11 +88,11 @@ func loadAnimSubdir(rel string) *Anim {
 func initEmbeddedSprites() {
 	root := "lucheng-sprites"
 	embeddedSprites = &petSpriteSet{
-		Idle:     loadAnimSubdir(root + "/idle"),
-		Wink:     loadAnimSubdir(root + "/headpat"),   // 右键：摸头
-		Tired:    loadAnimSubdir(root + "/coffee"),    // 饿了：想喝咖啡
-		Happy:    loadAnimSubdir(root + "/happy"),
-		Talking:  loadAnimSubdir(root + "/talking"),
-		Sleeping: loadAnimSubdir(root + "/idle"),      // 无 sleep 素材，暂用 idle
+		Idle:    loadAnimSubdir(root + "/idle"),
+		Wink:    loadAnimSubdir(root + "/headpat"), // 右键：摸头
+		Tired:   loadAnimSubdir(root + "/coffee"),  // 饿了：想喝咖啡
+		Happy:   loadAnimSubdir(root + "/happy"),
+		Talking: loadAnimSubdir(root + "/talking"),
+		Office:  loadAnimSubdir(root + "/office"), // 无互动一段时间后：办公
 	}
 }
