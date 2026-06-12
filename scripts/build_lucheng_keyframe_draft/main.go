@@ -47,7 +47,7 @@ func main() {
 	}
 
 	drafts := []draft{
-		{"1-1_office_executive.png", "office/frame1.png", nil},
+		{"1-1_office_executive.png", "office/action_typing.png", nil},
 		{"2-1_noon_sleep.png", "coffee/frame7.png", decorateSleep},
 		{"2-2_neutral.png", "idle/frame1.png", nil},
 		{"2-3_talk_weather.png", "talking/frame7.png", decorateWeatherReminder},

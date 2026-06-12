@@ -19,7 +19,7 @@ func main() {
 	noServer := flag.Bool("no-server", false, "不启动 HTTP+WS 服务，仅连接已有进程的 -ws")
 	x := flag.Int("x", -1, "窗口初始 X（默认：Dock/任务栏右上）")
 	y := flag.Int("y", -1, "窗口初始 Y（默认：Dock/任务栏右上）")
-	size := flag.Float64("size", 1.15, "立绘缩放（相对 chiikawa PNG 像素尺寸）")
+	size := flag.Float64("size", 0.1, "立绘缩放（相对 lucheng-sprites PNG 像素尺寸）")
 	hungrySec := flag.Int64("hungry", 3600, "多少秒后进入「疲倦/饥饿」状态；0 关闭")
 	walkPct := flag.Int("walk", 0, "自动溜达概率 %；0 为关闭（默认：精灵不自己横向移动）")
 	stopPct := flag.Int("stop", 40, "溜达时每周期停下的概率 %")

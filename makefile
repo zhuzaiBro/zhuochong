@@ -1,7 +1,7 @@
 .PHONY: start run package package-darwin package-windows package-all
 
 # 桌面直播精灵。追加参数示例：
-#   make start ARGS='-size 0.3 -office-idle 120 -talking-sec 3.5 -gift-sec 2.8'
+#   make start ARGS='-office-idle 120 -talking-sec 3.5 -gift-sec 2.8'
 # 仅连已有监控、不开本进程服务：
 #   make start ARGS='-no-server -ws=ws://127.0.0.1:8709/ws'
 ARGS ?=
@@ -10,7 +10,7 @@ DIST ?= dist
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 
 start run:
-	DOUYIN_MONITOR_SERVER_TTS=0 go run -tags ebitenpet . -size 0.2 $(ARGS)
+	DOUYIN_MONITOR_SERVER_TTS=0 go run -tags ebitenpet . $(ARGS)
 
 # 打包当前平台（macOS 打 .app + 可执行文件，Windows 打 .exe）
 package:
